@@ -72,7 +72,7 @@ const HomePage: React.FC<HomePageProps> = ({ showNotification }) => {
             }
 
             try {
-                const fetchedMemes = await getMemes('trending');
+                const fetchedMemes = await getMemes('newest');
                 setMemes(fetchedMemes);
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Failed to fetch memes.';
@@ -121,7 +121,7 @@ const HomePage: React.FC<HomePageProps> = ({ showNotification }) => {
             <Adsense adSlot="2345678901" />
 
             <section>
-                <h2 className="text-3xl font-bold text-text-primary mb-6 text-center">🔥 Trending Memes</h2>
+                <h2 className="text-3xl font-bold text-text-primary mb-6 text-center">✨ Newest Creations</h2>
                 {isLoadingMemes ? <MemeGridSkeleton /> : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                         {memes.slice(0, 4).filter(Boolean).map(meme => (
@@ -129,6 +129,9 @@ const HomePage: React.FC<HomePageProps> = ({ showNotification }) => {
                         ))}
                     </div>
                 )}
+                 <div className="text-center mt-6">
+                    <NavLink to="/feed/newest" className="text-primary hover:underline">See All New Memes →</NavLink>
+                </div>
             </section>
 
             <Adsense adSlot="3456789012" />

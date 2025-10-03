@@ -34,7 +34,8 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
     const [isRemixing, setIsRemixing] = useState(false);
     const [isVideoGenerating, setIsVideoGenerating] = useState(false);
     const [videoGenerationStatus, setVideoGenerationStatus] = useState('');
-    const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
+    const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null); // For publishing
+    const [generatedVideoObjectUrl, setGeneratedVideoObjectUrl] = useState<string | null>(null); // For preview
 
     const { user, isLoading: isAuthLoading } = useAuth();
     const navigate = useNavigate();
@@ -136,6 +137,15 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
         };
     }, []);
 
+    useEffect(() => {
+        // Cleanup for video object URL to prevent memory leaks
+        return () => {
+            if (generatedVideoObjectUrl) {
+                URL.revokeObjectURL(generatedVideoObjectUrl);
+            }
+        };
+    }, [generatedVideoObjectUrl]);
+
     const handleGetSuggestions = async () => {
         if (!selectedImage) return;
         setIsLoadingSuggestions(true);
@@ -175,6 +185,17 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
             setIsLoadingImage(false);
         }
     };
+    
+    const videoGenerationMessages = [
+        'Summoning video spirits from the digital ether...',
+        'Teaching pixels to dance in formation...',
+        'Compressing raw humor into MP4 format...',
+        'Our AI is working its magic. This can take a moment!',
+        'Generating giggles, please wait...',
+        'Polishing the video punchline to perfection...',
+        'Hang tight! Epic memes take a little time to bake.',
+        'Reticulating splines for maximum hilarity...'
+    ];
 
     const handleGenerateVideo = async () => {
         if (!aiVideoPrompt.trim()) {
@@ -187,6 +208,7 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
         setIsVideoGenerating(true);
         setVideoGenerationStatus('Sending request to AI...');
         setGeneratedVideoUrl(null);
+        setGeneratedVideoObjectUrl(null);
 
         try {
             let operation = await generateMemeVideo(aiVideoPrompt);
@@ -194,7 +216,7 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
                 throw new Error('Failed to start video generation.');
             }
 
-            setVideoGenerationStatus('Video generation started. This may take a few minutes. Checking progress...');
+            setVideoGenerationStatus('Video generation started. This may take a few minutes...');
 
             pollIntervalRef.current = window.setInterval(async () => {
                 operation = await getVideoOperationStatus(operation);
@@ -203,18 +225,33 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
                     pollIntervalRef.current = null;
                     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
                     if (downloadLink) {
-                        setGeneratedVideoUrl(downloadLink);
-                        setIsVideoGenerating(false);
-                        setVideoGenerationStatus('Video ready!');
-                        showNotification('Your video has been generated!', 'success');
+                        setVideoGenerationStatus('Almost there! Preparing your video preview...');
+                        try {
+                            const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+                            if (!response.ok) {
+                                throw new Error('Failed to download generated video for preview.');
+                            }
+                            const videoBlob = await response.blob();
+                            const objectUrl = URL.createObjectURL(videoBlob);
+                            
+                            setGeneratedVideoUrl(downloadLink); // Keep original URI for publishing
+                            setGeneratedVideoObjectUrl(objectUrl); // Use blob URL for preview
+                            setIsVideoGenerating(false);
+                            setVideoGenerationStatus('Video ready!');
+                            showNotification('Your video has been generated!', 'success');
+                        } catch (e) {
+                             const message = e instanceof Error ? e.message : 'An unknown error occurred while loading preview.';
+                             showNotification(message, 'error');
+                             setIsVideoGenerating(false);
+                             setVideoGenerationStatus('Failed to load video preview.');
+                        }
                     } else {
                         throw new Error('Video generation finished but no video URL was found.');
                     }
                 } else {
-                    console.log('Video generation in progress...');
-                    setVideoGenerationStatus('Still working on it... please wait.');
+                    setVideoGenerationStatus(videoGenerationMessages[Math.floor(Math.random() * videoGenerationMessages.length)]);
                 }
-            }, 10000); // Poll every 10 seconds
+            }, 5000); // Poll every 5 seconds
 
         } catch (error) {
             const message = error instanceof Error ? error.message : 'An unknown error occurred.';
@@ -372,6 +409,7 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
     const reset = () => {
         setSelectedImage(null);
         setGeneratedVideoUrl(null);
+        setGeneratedVideoObjectUrl(null);
         setTopText('');
         setBottomText('');
         setAiPrompt('');
@@ -473,7 +511,7 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
     const renderVideoEditor = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="relative bg-black flex items-center justify-center p-2 rounded-lg">
-                <video src={`${generatedVideoUrl}&key=${process.env.API_KEY}`} className="max-w-full max-h-[50vh] object-contain" controls loop playsInline />
+                <video src={generatedVideoObjectUrl!} className="max-w-full max-h-[50vh] object-contain" controls loop playsInline />
                 {topText && (
                     <div className="absolute top-0 left-0 right-0 p-2 text-center text-white font-bold text-xl md:text-2xl uppercase break-words pointer-events-none" style={{ WebkitTextStroke: '1px black', textShadow: '2px 2px 4px black' }}>
                         {topText.toUpperCase()}
@@ -622,7 +660,7 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
                 <button onClick={() => setMode('video')} className={`w-1/4 py-2 rounded-md font-semibold transition-colors ${mode === 'video' ? 'bg-primary text-white' : 'hover:bg-gray-700'}`}>Video with AI</button>
             </div>
             
-            {generatedVideoUrl ? renderVideoEditor() : selectedImage ? renderEditor() : renderSelection()}
+            {generatedVideoObjectUrl ? renderVideoEditor() : selectedImage ? renderEditor() : renderSelection()}
         </div>
     );
 };
