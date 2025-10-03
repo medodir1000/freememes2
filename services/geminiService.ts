@@ -1,6 +1,6 @@
 
-import { GoogleGenAI, Type, Modality } from "@google/genai";
-import { SuggestedCaption } from "../types";
+import { GoogleGenAI, Type, Modality, GenerateContentResponse } from "@google/genai";
+import { SuggestedCaption, MemeRating } from "../types";
 
 // As per guidelines, assume API_KEY is always available. The UI can still use this to conditionally render features.
 export const isGeminiConfigured = !!process.env.API_KEY;
@@ -63,6 +63,75 @@ The text should be funny and relatable.`;
             { top: `Error generating text`, bottom: `Please try again later` },
             { top: `My face when the AI is down`, bottom: `At least I have ${friendName || 'a friend'}` },
         ];
+    }
+};
+
+const rateMemeSchema = {
+    type: Type.OBJECT,
+    properties: {
+      viralityScore: {
+        type: Type.INTEGER,
+        description: "A score from 1 to 100 for the meme's viral potential.",
+      },
+      critique: {
+        type: Type.STRING,
+        description: "A short, witty, and sassy critique of the meme, under 25 words.",
+      },
+      suggestions: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.STRING,
+        },
+        description: "An array of 2-3 short, actionable suggestions for improving the meme.",
+      },
+    },
+    required: ['viralityScore', 'critique', 'suggestions'],
+};
+
+export const rateMeme = async (base64ImageData: string): Promise<MemeRating | null> => {
+    if (!isGeminiConfigured) {
+        console.warn("Cannot rate meme: AI service not configured.");
+        // Return mock data for development/demo purposes
+        return Promise.resolve({
+            viralityScore: 69,
+            critique: "Can't connect to the AI, but this looks like a solid effort!",
+            suggestions: ["Share it with your friends!", "Try using a more topical template."]
+        });
+    }
+
+    const prompt = `You are a world-class meme connoisseur and viral content expert named "Meme Coach". Analyze the provided meme image. Your goal is to rate its potential for virality and provide constructive, humorous feedback. Respond ONLY with a JSON object that matches the provided schema.
+
+- The critique should be witty and a bit sassy.
+- The suggestions must be actionable and helpful for making a funnier, more shareable meme.`;
+    
+    try {
+        const imagePart = {
+            inlineData: {
+                mimeType: 'image/jpeg',
+                data: base64ImageData,
+            },
+        };
+        const textPart = {
+            text: prompt
+        };
+
+        const response: GenerateContentResponse = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: { parts: [imagePart, textPart] },
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: rateMemeSchema,
+                temperature: 0.7,
+            },
+        });
+        
+        const jsonStr = response.text.trim();
+        const rating: MemeRating = JSON.parse(jsonStr);
+        return rating;
+
+    } catch (error) {
+        console.error("Error calling Gemini API for meme rating:", error);
+        return null;
     }
 };
 

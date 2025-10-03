@@ -251,7 +251,7 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
                 } else {
                     setVideoGenerationStatus(videoGenerationMessages[Math.floor(Math.random() * videoGenerationMessages.length)]);
                 }
-            }, 5000); // Poll every 5 seconds
+            }, 2000); // Poll every 2 seconds
 
         } catch (error) {
             const message = error instanceof Error ? error.message : 'An unknown error occurred.';

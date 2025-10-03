@@ -55,3 +55,9 @@ export interface SuggestedCaption {
     top: string;
     bottom: string;
 }
+
+export interface MemeRating {
+    viralityScore: number;
+    critique: string;
+    suggestions: string[];
+}

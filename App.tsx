@@ -19,6 +19,7 @@ import { useAuth } from './contexts/AuthContext';
 import Adsense from './components/Adsense';
 import Sidebar from './components/Sidebar';
 import MemeDetailPage from './pages/MemeDetailPage';
+import RateMyMemePage from './pages/RateMyMemePage';
 
 // Blog Pages
 import BlogIndexPage from './pages/BlogIndexPage';
@@ -103,7 +104,8 @@ const MainContent: React.FC = () => {
                         <div className="hidden md:block">
                             <div className="ml-10 flex items-baseline space-x-4">
                                 <NavLink to="/" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Home</NavLink>
-                                <NavLink to="/feed/trending" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Trending</NavLink>
+                                <NavLink to="/feed/trending" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Memes</NavLink>
+                                <NavLink to="/rate-my-meme" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Meme Coach</NavLink>
                                 <NavLink to="/leaderboard" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Leaderboard</NavLink>
                                 <NavLink to="/winners" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Winners</NavLink>
                                 <NavLink to="/blog" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Blog</NavLink>
@@ -126,6 +128,7 @@ const MainContent: React.FC = () => {
                             <Route path="/create" element={<CreateMemePage showNotification={showNotification} />} />
                             <Route path="/feed/:filter" element={<FeedPage showNotification={showNotification} />} />
                             <Route path="/meme/:id" element={<MemeDetailPage showNotification={showNotification} />} />
+                            <Route path="/rate-my-meme" element={<RateMyMemePage showNotification={showNotification} />} />
                             <Route path="/leaderboard" element={<LeaderboardPage showNotification={showNotification} />} />
                             <Route path="/winners" element={<WinnersPage showNotification={showNotification} />} />
                             <Route path="/about" element={<AboutPage />} />
