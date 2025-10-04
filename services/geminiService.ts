@@ -1,5 +1,8 @@
 
+
+
 import { GoogleGenAI, Type, Modality, GenerateContentResponse } from "@google/genai";
+// FIX: Add MemeRating type import for the new rateMeme function.
 import { SuggestedCaption, MemeRating } from "../types";
 
 // As per guidelines, assume API_KEY is always available. The UI can still use this to conditionally render features.
@@ -66,24 +69,25 @@ The text should be funny and relatable.`;
     }
 };
 
-const rateMemeSchema = {
+// FIX: Implement the rateMeme function to power the AI Meme Coach feature.
+const memeRatingSchema = {
     type: Type.OBJECT,
     properties: {
-      viralityScore: {
-        type: Type.INTEGER,
-        description: "A score from 1 to 100 for the meme's viral potential.",
-      },
-      critique: {
-        type: Type.STRING,
-        description: "A short, witty, and sassy critique of the meme, under 25 words.",
-      },
-      suggestions: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.STRING,
+        viralityScore: {
+            type: Type.NUMBER,
+            description: 'A score from 0 to 100 representing the meme\'s potential to go viral. 0-39: Dud, 40-69: Decent, 70-89: Dank, 90-100: God-Tier.',
         },
-        description: "An array of 2-3 short, actionable suggestions for improving the meme.",
-      },
+        critique: {
+            type: Type.STRING,
+            description: 'A short, witty, and constructive critique of the meme, explaining the score.',
+        },
+        suggestions: {
+            type: Type.ARRAY,
+            items: {
+                type: Type.STRING,
+            },
+            description: 'A list of 2-3 specific, actionable suggestions for how to improve the meme.',
+        },
     },
     required: ['viralityScore', 'critique', 'suggestions'],
 };
@@ -91,44 +95,51 @@ const rateMemeSchema = {
 export const rateMeme = async (base64ImageData: string): Promise<MemeRating | null> => {
     if (!isGeminiConfigured) {
         console.warn("Cannot rate meme: AI service not configured.");
-        // Return mock data for development/demo purposes
-        return Promise.resolve({
-            viralityScore: 69,
-            critique: "Can't connect to the AI, but this looks like a solid effort!",
-            suggestions: ["Share it with your friends!", "Try using a more topical template."]
-        });
+        return {
+            viralityScore: 78,
+            critique: "A solid effort! The concept is funny and relatable, but the bottom text could be a bit punchier.",
+            suggestions: ["Try a shorter, more direct bottom text.", "Increase the font size slightly for better readability.", "This is a mock response because the AI is not configured."]
+        };
     }
 
-    const prompt = `You are a world-class meme connoisseur and viral content expert named "Meme Coach". Analyze the provided meme image. Your goal is to rate its potential for virality and provide constructive, humorous feedback. Respond ONLY with a JSON object that matches the provided schema.
+    const imagePart = {
+        inlineData: {
+            // Since the file type isn't passed from the component, we make a reasonable guess.
+            // The file input accepts jpg, png, and gif, which the model can often handle.
+            mimeType: 'image/jpeg',
+            data: base64ImageData,
+        },
+    };
 
-- The critique should be witty and a bit sassy.
-- The suggestions must be actionable and helpful for making a funnier, more shareable meme.`;
-    
+    const textPart = {
+        text: `You are "Meme Coach," a witty AI expert in internet humor and viral content.
+        Your task is to rate a user-submitted meme based on its potential to go viral.
+        Analyze the image and any text it contains.
+        Provide a "virality score" from 0-100 based on these tiers:
+        - 0-39: Dud - Unlikely to get any traction.
+        - 40-69: Decent - Might get some laughs from friends.
+        - 70-89: Dank - Has real potential to be shared widely.
+        - 90-100: God-Tier - Certified viral material.
+        Provide a short, constructive critique explaining your score.
+        Provide 2-3 specific, actionable suggestions for improvement.
+        Your tone should be funny, encouraging, and a little bit sassy, like a real meme expert.
+        Respond ONLY with the JSON object.`,
+    };
+
     try {
-        const imagePart = {
-            inlineData: {
-                mimeType: 'image/jpeg',
-                data: base64ImageData,
-            },
-        };
-        const textPart = {
-            text: prompt
-        };
-
-        const response: GenerateContentResponse = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
             contents: { parts: [imagePart, textPart] },
             config: {
                 responseMimeType: "application/json",
-                responseSchema: rateMemeSchema,
+                responseSchema: memeRatingSchema,
                 temperature: 0.7,
             },
         });
-        
+
         const jsonStr = response.text.trim();
         const rating: MemeRating = JSON.parse(jsonStr);
         return rating;
-
     } catch (error) {
         console.error("Error calling Gemini API for meme rating:", error);
         return null;

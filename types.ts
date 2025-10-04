@@ -1,4 +1,6 @@
 
+
+
 export interface MemeTemplate {
     id: string;
     name: string;
@@ -33,7 +35,7 @@ export interface Meme {
 
 export interface Comment {
     id: string;
-    author: { id: string; name: string; avatarUrl: string | null; };
+    author: { id:string; name: string; avatarUrl: string | null; };
     text: string;
     createdAt: string;
 }
@@ -56,6 +58,7 @@ export interface SuggestedCaption {
     bottom: string;
 }
 
+// FIX: Add MemeRating interface for the AI meme coaching feature.
 export interface MemeRating {
     viralityScore: number;
     critique: string;
