@@ -1,8 +1,14 @@
 import { SuggestedCaption, MemeRating } from "../types";
 
+// The backend URL is retrieved from environment variables.
+// In development (npm run dev), this will be undefined, and requests will go to the proxy (e.g., /api/status).
+// In production, this will be the full URL of your deployed backend app (e.g., https://my-backend.caprover.app).
+const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '';
+
+
 // Helper to handle API requests to our own backend
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-    const response = await fetch(`/api${endpoint}`, {
+    const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
         headers: { 'Content-Type': 'application/json' },
         ...options,
     });
