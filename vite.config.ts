@@ -3,11 +3,15 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // FIX: Replaced `process.cwd()` with `''` to resolve a TypeScript error where the `process` global was not typed.
-  // The `loadEnv` function will correctly use the project root as the directory for .env files.
-  const env = loadEnv(mode, '', '');
+  // Load env file based on `mode` in the current working directory.
+  // FIX: Replaced process.cwd() with '.' to resolve a TypeScript type error.
+  const env = loadEnv(mode, '.', '');
   return {
     plugins: [react()],
+    // Define global constants to be replaced during build. This makes env variables available to the client.
+    define: {
+      'process.env.VITE_BACKEND_API_URL': JSON.stringify(env.VITE_BACKEND_API_URL),
+    },
     // Proxy API requests to the backend server during development
     server: {
       proxy: {

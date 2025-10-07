@@ -3,7 +3,8 @@ import { SuggestedCaption, MemeRating } from "../types";
 // The backend URL is retrieved from environment variables.
 // In development (npm run dev), this will be undefined, and requests will go to the proxy (e.g., /api/status).
 // In production, this will be the full URL of your deployed backend app (e.g., https://my-backend.caprover.app).
-const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL || '';
+// FIX: Use process.env, which is replaced by Vite's `define` config, to avoid issues with `import.meta.env`.
+const API_BASE_URL = process.env.VITE_BACKEND_API_URL || '';
 
 
 // Helper to handle API requests to our own backend
