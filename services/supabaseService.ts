@@ -1,4 +1,3 @@
-
 import { supabase } from '../lib/supabaseClient';
 import { Meme, User, Winner, Comment } from '../types';
 
@@ -284,8 +283,9 @@ export const castVote = async (memeId: string, userId: string, voteValue: 1 | -1
 };
 
 export const publishVideoMeme = async (memeData: { userId: string, videoUrl: string, topText?: string, bottomText?: string }): Promise<void> => {
-    // 1. Fetch the video from the Gemini URL with the API key
-    const videoResponse = await fetch(`${memeData.videoUrl}&key=${process.env.API_KEY}`);
+    
+    // 1. Fetch the video securely from our backend proxy
+    const videoResponse = await fetch(`/api/get-video?uri=${encodeURIComponent(memeData.videoUrl)}`);
     if (!videoResponse.ok) {
         throw new Error('Failed to download generated video.');
     }

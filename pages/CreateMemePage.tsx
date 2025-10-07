@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMemeTemplates } from '../services/imgflipService';
-import { suggestMemeText, generateMemeImage, isGeminiConfigured, editMemeImage, generateMemeVideo, getVideoOperationStatus } from '../services/geminiService';
+import { suggestMemeText, generateMemeImage, editMemeImage, generateMemeVideo, getVideoOperationStatus, checkAiServiceStatus } from '../services/geminiService';
 import { publishMeme as dbPublishMeme, publishVideoMeme as dbPublishVideoMeme } from '../services/supabaseService';
 import { MemeTemplate } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -36,11 +36,16 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
     const [videoGenerationStatus, setVideoGenerationStatus] = useState('');
     const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null); // For publishing
     const [generatedVideoObjectUrl, setGeneratedVideoObjectUrl] = useState<string | null>(null); // For preview
+    const [isAiConfigured, setIsAiConfigured] = useState<boolean>(true); // Assume configured, check on mount
 
     const { user, isLoading: isAuthLoading } = useAuth();
     const navigate = useNavigate();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const pollIntervalRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        checkAiServiceStatus().then(status => setIsAiConfigured(status));
+    }, []);
     
     useEffect(() => {
         if (!isAuthLoading && !user) {
@@ -227,7 +232,8 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
                     if (downloadLink) {
                         setVideoGenerationStatus('Almost there! Preparing your video preview...');
                         try {
-                            const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+                            // Fetch the video securely from our backend proxy
+                            const response = await fetch(`/api/get-video?uri=${encodeURIComponent(downloadLink)}`);
                             if (!response.ok) {
                                 throw new Error('Failed to download generated video for preview.');
                             }
@@ -251,7 +257,7 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
                 } else {
                     setVideoGenerationStatus(videoGenerationMessages[Math.floor(Math.random() * videoGenerationMessages.length)]);
                 }
-            }, 2000); // Poll every 2 seconds
+            }, 10000); // Poll every 10 seconds
 
         } catch (error) {
             const message = error instanceof Error ? error.message : 'An unknown error occurred.';
@@ -447,7 +453,7 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
                     className="w-full p-3 bg-background rounded-lg border-2 border-surface focus:border-primary focus:outline-none"
                 />
 
-                {isGeminiConfigured && (
+                {isAiConfigured && (
                     <>
                         <div className="bg-surface p-4 rounded-lg space-y-3">
                             <h3 className="font-bold text-lg">✨ Get AI Suggestions</h3>
@@ -599,7 +605,7 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
                 <div className="max-w-2xl mx-auto text-center bg-surface p-8 rounded-xl">
                      <h2 className="text-2xl font-bold mb-4">Describe the Meme You Want</h2>
                      <p className="text-text-secondary mb-6">Be as creative as you want! For example: "A cat wearing sunglasses using a laptop".</p>
-                     {isGeminiConfigured ? (
+                     {isAiConfigured ? (
                         <div className="flex gap-2">
                             <input
                                 type="text"
@@ -625,7 +631,7 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
                 <div className="max-w-2xl mx-auto text-center bg-surface p-8 rounded-xl">
                      <h2 className="text-2xl font-bold mb-4">Describe the Video Meme You Want</h2>
                      <p className="text-text-secondary mb-6">Be as creative as you want! For example: "A dog skateboarding in space".</p>
-                     {isGeminiConfigured ? (
+                     {isAiConfigured ? (
                         <div className="space-y-4">
                             <div className="flex gap-2">
                                 <input

@@ -1,6 +1,5 @@
-
-import React, { useState, useCallback } from 'react';
-import { isGeminiConfigured, rateMeme } from '../services/geminiService';
+import React, { useState, useCallback, useEffect } from 'react';
+import { checkAiServiceStatus, rateMeme } from '../services/geminiService';
 import { MemeRating } from '../types';
 
 interface RateMyMemePageProps {
@@ -69,6 +68,11 @@ const RateMyMemePage: React.FC<RateMyMemePageProps> = ({ showNotification }) => 
     const [results, setResults] = useState<MemeRating | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loadingMessage, setLoadingMessage] = useState(loadingMessages[0]);
+    const [isAiConfigured, setIsAiConfigured] = useState<boolean | null>(null); // null = checking
+
+    useEffect(() => {
+        checkAiServiceStatus().then(status => setIsAiConfigured(status));
+    }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -129,7 +133,16 @@ const RateMyMemePage: React.FC<RateMyMemePageProps> = ({ showNotification }) => 
         setIsLoading(false);
     };
 
-    if (!isGeminiConfigured) {
+    if (isAiConfigured === null) {
+        return (
+             <div className="max-w-2xl mx-auto text-center bg-surface p-8 rounded-xl">
+                 <h1 className="text-4xl font-bold text-primary mb-4">Meme Coach</h1>
+                 <p>Checking AI service status...</p>
+            </div>
+        )
+    }
+
+    if (!isAiConfigured) {
         return (
             <div className="max-w-2xl mx-auto text-center bg-surface p-8 rounded-xl">
                  <h1 className="text-4xl font-bold text-primary mb-4">Meme Coach</h1>
