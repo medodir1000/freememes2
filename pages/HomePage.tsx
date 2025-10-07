@@ -34,7 +34,7 @@ const LeaderboardPreview: React.FC<{ users: User[], isLoading: boolean }> = ({ u
                             <li key={user.id} className="flex items-center justify-between p-2 bg-background rounded-md">
                                 <div className="flex items-center">
                                     <span className="text-lg font-bold text-text-secondary mr-3">{index + 1}</span>
-                                    <img src={user.avatarUrl || `https://picsum.photos/seed/${user.id}/100`} alt={user.name} className="w-10 h-10 rounded-full mr-3" />
+                                    <img src={user.avatarUrl || `https://picsum.photos/seed/${user.id}/100`} alt={user.name} className="w-10 h-10 rounded-full mr-3" loading="lazy" decoding="async" />
                                     <span className="font-semibold text-text-primary">{user.name}</span>
                                 </div>
                                 <span className="font-bold text-primary">{(user.totalVotes ?? 0).toLocaleString()} votes</span>

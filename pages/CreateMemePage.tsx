@@ -511,7 +511,9 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
     const renderVideoEditor = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="relative bg-black flex items-center justify-center p-2 rounded-lg">
-                <video src={generatedVideoObjectUrl!} className="max-w-full max-h-[50vh] object-contain" controls loop playsInline />
+                <video src={generatedVideoObjectUrl!} className="max-w-full max-h-[50vh] object-contain" controls loop playsInline>
+                    <track kind="captions" src="captions.vtt" srclang="en" label="English" />
+                </video>
                 {topText && (
                     <div className="absolute top-0 left-0 right-0 p-2 text-center text-white font-bold text-xl md:text-2xl uppercase break-words pointer-events-none" style={{ WebkitTextStroke: '1px black', textShadow: '2px 2px 4px black' }}>
                         {topText.toUpperCase()}
@@ -573,7 +575,7 @@ const CreateMemePage: React.FC<CreateMemePageProps> = ({ showNotification }) => 
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                             {filteredTemplates.map(template => (
                                 <div key={template.id} className="cursor-pointer group" onClick={() => setSelectedImage({ url: template.url, name: template.name, id: template.id })}>
-                                    <img src={template.url} alt={template.name} className="w-full h-auto object-cover rounded-lg group-hover:scale-105 transition-transform" />
+                                    <img src={template.url} alt={template.name} className="w-full h-auto object-cover rounded-lg group-hover:scale-105 transition-transform" loading="lazy" decoding="async" />
                                     <p className="text-xs text-center mt-1 text-text-secondary truncate group-hover:text-text-primary">{template.name}</p>
                                 </div>
                             ))}

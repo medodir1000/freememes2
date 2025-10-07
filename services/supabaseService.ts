@@ -22,26 +22,36 @@ const mapProfileToUser = (profile: any): User => ({
     badge: profile.badge,
 });
 
-const mapToMeme = (meme: any): Meme => ({
-    id: meme.id,
-    imageUrl: meme.image_url,
-    topText: meme.top_text,
-    bottomText: meme.bottom_text,
-    mediaType: meme.image_url && meme.image_url.includes('.mp4') ? 'video' : 'image',
-    votes: Number(meme.votes) || 0,
-    createdAt: meme.created_at,
-    templateId: meme.template_id,
-    creator: meme.profiles ? {
-        id: meme.profiles.id,
-        name: meme.profiles.name,
-        avatarUrl: meme.profiles.avatar_url,
-    } : {
-        id: '00000000-0000-0000-0000-000000000000',
-        name: 'Unknown Creator',
-        avatarUrl: null,
-    },
-    comments: [],
-});
+const mapToMeme = (meme: any): Meme => {
+    let imageUrl = meme.image_url;
+    const mediaType = meme.image_url && meme.image_url.includes('.mp4') ? 'video' : 'image';
+    
+    // Only apply image transformations to images, not videos, and only to our Supabase storage URLs
+    if (mediaType === 'image' && imageUrl && imageUrl.startsWith('https://swpynrjlochokyqxqeoz.supabase.co/storage/v1/object/public/memes-images/')) {
+        imageUrl += '?width=600&quality=80';
+    }
+
+    return {
+        id: meme.id,
+        imageUrl: imageUrl, // Use the potentially optimized URL
+        topText: meme.top_text,
+        bottomText: meme.bottom_text,
+        mediaType: mediaType,
+        votes: Number(meme.votes) || 0,
+        createdAt: meme.created_at,
+        templateId: meme.template_id,
+        creator: meme.profiles ? {
+            id: meme.profiles.id,
+            name: meme.profiles.name,
+            avatarUrl: meme.profiles.avatar_url,
+        } : {
+            id: '00000000-0000-0000-0000-000000000000',
+            name: 'Unknown Creator',
+            avatarUrl: null,
+        },
+        comments: [],
+    };
+};
 
 const mapToComment = (comment: any): Comment => ({
     id: comment.id,

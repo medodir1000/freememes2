@@ -1,34 +1,43 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, lazy, Suspense } from 'react';
 import { HashRouter, Route, Routes, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import CreateMemePage from './pages/CreateMemePage';
-import FeedPage from './pages/FeedPage';
-import LeaderboardPage from './pages/LeaderboardPage';
-import WinnersPage from './pages/WinnersPage';
-import AboutPage from './pages/AboutPage';
 import NotificationPopup from './components/NotificationPopup';
 import { Notification } from './types';
-import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
-import ContactUsPage from './pages/ContactUsPage';
-import TermsOfServicePage from './pages/TermsOfServicePage';
-import SignInPage from './pages/SignInPage';
-import SignUpPage from './pages/SignUpPage';
-import ProfilePage from './pages/ProfilePage';
 import { useAuth } from './contexts/AuthContext';
 import Adsense from './components/Adsense';
 import Sidebar from './components/Sidebar';
-import MemeDetailPage from './pages/MemeDetailPage';
+
+// Lazy load pages for code splitting
+const HomePage = lazy(() => import('./pages/HomePage'));
+const CreateMemePage = lazy(() => import('./pages/CreateMemePage'));
+const FeedPage = lazy(() => import('./pages/FeedPage'));
+const MemeDetailPage = lazy(() => import('./pages/MemeDetailPage'));
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
+const WinnersPage = lazy(() => import('./pages/WinnersPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const ContactUsPage = lazy(() => import('./pages/ContactUsPage'));
+const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
+const SignInPage = lazy(() => import('./pages/SignInPage'));
+const SignUpPage = lazy(() => import('./pages/SignUpPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const RateMyMemePage = lazy(() => import('./pages/RateMyMemePage'));
 
 // Blog Pages
-import BlogIndexPage from './pages/BlogIndexPage';
-import HowToMakeAMeme from './pages/blog/HowToMakeAMeme';
-import WhatMakesAMemeGoViral from './pages/blog/WhatMakesAMemeGoViral';
-import HistoryOfMemes from './pages/blog/HistoryOfMemes';
-import MemeMarketingStrategy from './pages/blog/MemeMarketingStrategy';
-import Top10MemeTemplates from './pages/blog/Top10MemeTemplates';
-import HowToWinOurMemeContest from './pages/blog/HowToWinOurMemeContest';
-import FairPlayPolicyExplained from './pages/blog/FairPlayPolicyExplained';
-import UsingAIToCreateMemes from './pages/blog/UsingAIToCreateMemes';
+const BlogIndexPage = lazy(() => import('./pages/BlogIndexPage'));
+const HowToMakeAMeme = lazy(() => import('./pages/blog/HowToMakeAMeme'));
+const WhatMakesAMemeGoViral = lazy(() => import('./pages/blog/WhatMakesAMemeGoViral'));
+const HistoryOfMemes = lazy(() => import('./pages/blog/HistoryOfMemes'));
+const MemeMarketingStrategy = lazy(() => import('./pages/blog/MemeMarketingStrategy'));
+const Top10MemeTemplates = lazy(() => import('./pages/blog/Top10MemeTemplates'));
+const HowToWinOurMemeContest = lazy(() => import('./pages/blog/HowToWinOurMemeContest'));
+const FairPlayPolicyExplained = lazy(() => import('./pages/blog/FairPlayPolicyExplained'));
+const UsingAIToCreateMemes = lazy(() => import('./pages/blog/UsingAIToCreateMemes'));
+
+const PageLoader: React.FC = () => (
+    <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary"></div>
+    </div>
+);
 
 const HeaderActions: React.FC<{showNotification: Function}> = ({ showNotification }) => {
     const navigate = useNavigate();
@@ -48,7 +57,7 @@ const HeaderActions: React.FC<{showNotification: Function}> = ({ showNotificatio
         return (
             <div className="flex items-center space-x-4">
                 <NavLink to="/profile" className="px-3 py-2 rounded-md text-sm font-medium text-text-secondary hover:bg-surface hover:text-text-primary transition-colors">
-                    <img src={user.avatarUrl || `https://picsum.photos/seed/${user.id}/100`} alt="user avatar" className="w-8 h-8 rounded-full inline-block mr-2" />
+                    <img src={user.avatarUrl || `https://picsum.photos/seed/${user.id}/100`} alt={`${user.name}'s avatar'`} className="w-8 h-8 rounded-full inline-block mr-2" />
                     {user.name}
                 </NavLink>
                 <button onClick={handleSignOut} className="px-3 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
@@ -130,6 +139,7 @@ const MainContent: React.FC = () => {
                                 <div className="ml-10 flex items-baseline space-x-4">
                                     <NavLink to="/" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Home</NavLink>
                                     <NavLink to="/feed/trending" className={({ isActive }) => isActive || location.pathname.startsWith('/feed') ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Memes</NavLink>
+                                    <NavLink to="/rate-my-meme" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Rate My Meme</NavLink>
                                     <NavLink to="/leaderboard" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Leaderboard</NavLink>
                                     <NavLink to="/winners" className={({ isActive }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Winners</NavLink>
                                     <NavLink to="/blog" className={({ isActive }) => isActive || location.pathname.startsWith('/blog') ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses}>Blog</NavLink>
@@ -156,6 +166,7 @@ const MainContent: React.FC = () => {
                         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                             <NavLink to="/" className={({isActive}) => mobileNavLinkClasses(isActive)} onClick={() => setIsMenuOpen(false)}>Home</NavLink>
                             <NavLink to="/feed/trending" className={({isActive}) => mobileNavLinkClasses(isActive || location.pathname.startsWith('/feed'))} onClick={() => setIsMenuOpen(false)}>Memes</NavLink>
+                             <NavLink to="/rate-my-meme" className={({isActive}) => mobileNavLinkClasses(isActive)} onClick={() => setIsMenuOpen(false)}>Rate My Meme</NavLink>
                             <NavLink to="/leaderboard" className={({isActive}) => mobileNavLinkClasses(isActive)} onClick={() => setIsMenuOpen(false)}>Leaderboard</NavLink>
                             <NavLink to="/winners" className={({isActive}) => mobileNavLinkClasses(isActive)} onClick={() => setIsMenuOpen(false)}>Winners</NavLink>
                             <NavLink to="/blog" className={({isActive}) => mobileNavLinkClasses(isActive || location.pathname.startsWith('/blog'))} onClick={() => setIsMenuOpen(false)}>Blog</NavLink>
@@ -166,7 +177,7 @@ const MainContent: React.FC = () => {
                                 <div className="px-5 space-y-3">
                                     <NavLink to="/profile" className="flex items-center" onClick={() => setIsMenuOpen(false)}>
                                         <div className="flex-shrink-0">
-                                            <img className="h-10 w-10 rounded-full" src={user.avatarUrl || `https://picsum.photos/seed/${user.id}/100`} alt="user avatar" />
+                                            <img className="h-10 w-10 rounded-full" src={user.avatarUrl || `https://picsum.photos/seed/${user.id}/100`} alt={`${user.name}'s avatar'`} />
                                         </div>
                                         <div className="ml-3">
                                             <div className="text-base font-medium leading-none text-white">{user.name}</div>
@@ -195,32 +206,35 @@ const MainContent: React.FC = () => {
                 <div className={showSidebar ? 'grid grid-cols-1 lg:grid-cols-12 lg:gap-8' : ''}>
                     <main className={showSidebar ? 'lg:col-span-9' : ''}>
                         <Adsense adSlot="1234567890" /> {/* Top Banner Ad */}
-                        <Routes>
-                            <Route path="/" element={<HomePage showNotification={showNotification} />} />
-                            <Route path="/create" element={<CreateMemePage showNotification={showNotification} />} />
-                            <Route path="/feed/:filter" element={<FeedPage showNotification={showNotification} />} />
-                            <Route path="/meme/:id" element={<MemeDetailPage showNotification={showNotification} />} />
-                            <Route path="/leaderboard" element={<LeaderboardPage showNotification={showNotification} />} />
-                            <Route path="/winners" element={<WinnersPage showNotification={showNotification} />} />
-                            <Route path="/about" element={<AboutPage />} />
-                            <Route path="/privacy" element={<PrivacyPolicyPage />} />
-                            <Route path="/contact" element={<ContactUsPage showNotification={showNotification} />} />
-                            <Route path="/terms" element={<TermsOfServicePage />} />
-                            <Route path="/signin" element={<SignInPage showNotification={showNotification} />} />
-                            <Route path="/signup" element={<SignUpPage showNotification={showNotification} />} />
-                            <Route path="/profile" element={<ProfilePage showNotification={showNotification} />} />
+                        <Suspense fallback={<PageLoader />}>
+                            <Routes>
+                                <Route path="/" element={<HomePage showNotification={showNotification} />} />
+                                <Route path="/create" element={<CreateMemePage showNotification={showNotification} />} />
+                                <Route path="/feed/:filter" element={<FeedPage showNotification={showNotification} />} />
+                                <Route path="/meme/:id" element={<MemeDetailPage showNotification={showNotification} />} />
+                                <Route path="/leaderboard" element={<LeaderboardPage showNotification={showNotification} />} />
+                                <Route path="/winners" element={<WinnersPage showNotification={showNotification} />} />
+                                <Route path="/about" element={<AboutPage />} />
+                                <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                                <Route path="/contact" element={<ContactUsPage showNotification={showNotification} />} />
+                                <Route path="/terms" element={<TermsOfServicePage />} />
+                                <Route path="/signin" element={<SignInPage showNotification={showNotification} />} />
+                                <Route path="/signup" element={<SignUpPage showNotification={showNotification} />} />
+                                <Route path="/profile" element={<ProfilePage showNotification={showNotification} />} />
+                                <Route path="/rate-my-meme" element={<RateMyMemePage showNotification={showNotification} />} />
 
-                            {/* Blog Routes */}
-                            <Route path="/blog" element={<BlogIndexPage />} />
-                            <Route path="/blog/how-to-make-a-meme" element={<HowToMakeAMeme />} />
-                            <Route path="/blog/what-makes-a-meme-go-viral" element={<WhatMakesAMemeGoViral />} />
-                            <Route path="/blog/history-of-memes" element={<HistoryOfMemes />} />
-                            <Route path="/blog/meme-marketing-strategy" element={<MemeMarketingStrategy />} />
-                            <Route path="/blog/top-10-meme-templates" element={<Top10MemeTemplates />} />
-                            <Route path="/blog/how-to-win-our-meme-contest" element={<HowToWinOurMemeContest />} />
-                            <Route path="/blog/fair-play-policy-explained" element={<FairPlayPolicyExplained />} />
-                            <Route path="/blog/using-ai-to-create-memes" element={<UsingAIToCreateMemes />} />
-                        </Routes>
+                                {/* Blog Routes */}
+                                <Route path="/blog" element={<BlogIndexPage />} />
+                                <Route path="/blog/how-to-make-a-meme" element={<HowToMakeAMeme />} />
+                                <Route path="/blog/what-makes-a-meme-go-viral" element={<WhatMakesAMemeGoViral />} />
+                                <Route path="/blog/history-of-memes" element={<HistoryOfMemes />} />
+                                <Route path="/blog/meme-marketing-strategy" element={<MemeMarketingStrategy />} />
+                                <Route path="/blog/top-10-meme-templates" element={<Top10MemeTemplates />} />
+                                <Route path="/blog/how-to-win-our-meme-contest" element={<HowToWinOurMemeContest />} />
+                                <Route path="/blog/fair-play-policy-explained" element={<FairPlayPolicyExplained />} />
+                                <Route path="/blog/using-ai-to-create-memes" element={<UsingAIToCreateMemes />} />
+                            </Routes>
+                        </Suspense>
                     </main>
                     {showSidebar && <Sidebar />}
                 </div>
@@ -240,8 +254,8 @@ const MainContent: React.FC = () => {
                 </div>
             </footer>
             
-            <NavLink to="/create" className="md:hidden fixed bottom-5 right-5 bg-primary hover:bg-primary-dark text-white font-bold p-4 rounded-full shadow-lg z-40 transition-transform transform hover:scale-110">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+            <NavLink to="/create" aria-label="Create Meme" className="md:hidden fixed bottom-5 right-5 bg-primary hover:bg-primary-dark text-white font-bold p-4 rounded-full shadow-lg z-40 transition-transform transform hover:scale-110">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
             </NavLink>
 
             {notification && <NotificationPopup message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}

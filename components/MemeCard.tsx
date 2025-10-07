@@ -128,9 +128,11 @@ const MemeCard: React.FC<MemeCardProps> = ({ meme, showNotification }) => {
         <div className="bg-surface rounded-xl shadow-lg overflow-hidden flex flex-col transition-transform transform hover:-translate-y-1">
             <div className="relative bg-black">
                 {meme.mediaType === 'video' ? (
-                    <video src={meme.imageUrl} className="w-full h-auto object-contain max-h-96" controls loop playsInline aria-label={`Meme by ${meme.creator.name}`} />
+                    <video src={meme.imageUrl} className="w-full h-auto object-contain max-h-96" controls loop playsInline aria-label={`Meme by ${meme.creator.name}`}>
+                        <track kind="captions" src="captions.vtt" srclang="en" label="English" />
+                    </video>
                 ) : (
-                    <img src={meme.imageUrl} alt={`Meme by ${meme.creator.name}`} className="w-full h-auto object-contain max-h-96" />
+                    <img src={meme.imageUrl} alt={`Meme by ${meme.creator.name}`} className="w-full h-auto object-contain max-h-96" loading="lazy" decoding="async" />
                 )}
                 {meme.topText && (
                     <div className="absolute top-0 left-0 right-0 p-2 text-center text-white font-bold text-xl md:text-2xl uppercase break-words pointer-events-none" style={{ WebkitTextStroke: '1px black', textShadow: '2px 2px 4px black' }}>
@@ -189,7 +191,7 @@ const MemeCard: React.FC<MemeCardProps> = ({ meme, showNotification }) => {
                     </div>
                     <div className="text-center">
                         <button onClick={toggleComments} className="text-sm text-text-secondary hover:text-primary transition-colors inline-flex items-center space-x-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
                             <span>{commentsVisible ? 'Hide' : `Show ${isLoadingComments ? '...' : comments.length}`} Comments</span>
                         </button>
                     </div>

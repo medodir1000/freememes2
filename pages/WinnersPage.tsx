@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getWinners } from '../services/supabaseService';
 import { Winner } from '../types';
@@ -52,7 +51,7 @@ const WinnersPage: React.FC<WinnersPageProps> = ({ showNotification }) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                         {winners.map(winner => (
                             <div key={winner.id} className="bg-surface rounded-xl shadow-lg p-6 flex flex-col items-center text-center transition-transform transform hover:-translate-y-2">
-                                <img src={winner.avatar_url} alt={winner.name} className="w-24 h-24 rounded-full border-4 border-primary mb-4" />
+                                <img src={winner.avatar_url} alt={winner.name} className="w-24 h-24 rounded-full border-4 border-primary mb-4" loading="lazy" decoding="async" />
                                 <h3 className="text-xl font-bold text-text-primary">{winner.name}</h3>
                                 <p className="text-text-secondary">Winner of</p>
                                 <p className="font-semibold text-primary">{winner.month}</p>

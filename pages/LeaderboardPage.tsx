@@ -69,7 +69,7 @@ const LeaderboardPage: React.FC<LeaderboardPageProps> = ({ showNotification }) =
                                 <div className={`w-12 text-center text-2xl font-bold ${getRankColor(index)}`}>
                                     {index + 1}
                                 </div>
-                                <img src={user.avatarUrl || `https://picsum.photos/seed/${user.id}/100`} alt={user.name} className="w-12 h-12 rounded-full mx-4" />
+                                <img src={user.avatarUrl || `https://picsum.photos/seed/${user.id}/100`} alt={user.name} className="w-12 h-12 rounded-full mx-4" loading="lazy" decoding="async" />
                                 <div className="flex-grow">
                                     <p className="font-bold text-lg text-text-primary flex items-center">
                                         {user.name}

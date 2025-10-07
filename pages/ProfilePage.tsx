@@ -36,7 +36,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ showNotification }) => {
         <div className="max-w-2xl mx-auto bg-surface p-8 rounded-xl shadow-lg text-center">
             <img 
                 src={user.avatarUrl || `https://picsum.photos/seed/${user.id}/100`}
-                alt="User Avatar"
+                alt={`${user.name}'s avatar'`}
                 className="w-32 h-32 rounded-full mx-auto border-4 border-primary mb-4"
             />
             <h1 className="text-4xl font-bold text-text-primary">{user.name}</h1>
